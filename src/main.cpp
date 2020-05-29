@@ -94,40 +94,27 @@ void TaskBlink1(void *pvParameters)
   }
 }
 
+QueueHandle_t tempQ;
+
+
 void askTempTask(void *pvParameters)
 {
   while (1)
   {
-    //Serial.print(" Requesting temperatures...");
     sensors.requestTemperatures(); // Send the command to get temperature readings
-    //Serial.println("DONE");
-    /********************************************************************/
-    Serial.print("Temperature is: ");
-    Serial.println(sensors.getTempCByIndex(0)); // Why "byIndex"?
-                                                // You can have more than one DS18B20 on the same bus.
-                                                // 0 refers to the first IC on the wire
-    vTaskDelay(1200 / portTICK_PERIOD_MS);
+    float t = sensors.getTempCByIndex(0);
+    xQueueSend(tempQ, &t, 0);
+    vTaskDelay(3000 / portTICK_PERIOD_MS);
   }
 }
 
 long lastMsg = 0;
 char msg[64];
 
-void mqttTask(void *pvParameters)
-{
-  while (true)
-  {
 
-    vTaskDelay(100 / portTICK_PERIOD_MS);
-  }  
-}
-
-QueueHandle_t tempQ;
 
 void setup()
 {
-  //pinMode(35, OUTPUT);
-  // start serial port
   Serial.begin(9600);
   Serial.println("Dallas Temperature IC Control Library Demo");
   // Start up the library
@@ -159,12 +146,13 @@ void setup()
   tempQ = xQueueCreate(10, sizeof(float));
 
   xTaskCreate(TaskBlink1, "Blink", 8048, NULL, 1, NULL);
-  xTaskCreate(mqttTask, "mqttTask", 65536, NULL, 1, NULL);
+  xTaskCreate(askTempTask, "mqttTask", 8048, NULL, 1, NULL);
   //vTaskStartScheduler();
 
 
 }
 
+float tempBuf = 0;
 void loop()
 {
     /* if client was disconnected then try to reconnect again */
@@ -177,17 +165,18 @@ void loop()
     client.loop();
 
     long now = millis();
-    if (now - lastMsg > 3000)
+    //if (now - lastMsg > 3000)
+    if (true)
     {
       lastMsg = now;
-      Serial.print(" Requesting temperatures...");
-      sensors.requestTemperatures(); // Send the command to get temperature readings
-      Serial.println("DONE");
-      /********************************************************************/
-      Serial.print("Temperature is: ");
-      float temp = sensors.getTempCByIndex(0);
-      Serial.println(temp);
-      snprintf (msg, sizeof(msg), "{ \"t\": %lf }", temp);
-      client.publish(TEMP_TOPIC, msg);
+      if (xQueueReceive(tempQ, &tempBuf, 1) == pdTRUE) {
+        Serial.print(" Requesting temperatures...");
+        Serial.println("DONE");
+        /********************************************************************/
+        Serial.print("Temperature is: ");
+        snprintf (msg, sizeof(msg), "{ \"t\": %lf }", tempBuf);
+        client.publish(TEMP_TOPIC, msg);
+
+      }
     }
 }
