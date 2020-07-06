@@ -1,5 +1,6 @@
 #include "Settings.hpp"
 #include <WiFiType.h>
+#include <PubSubClient.h>
 
 #pragma once
 
@@ -15,9 +16,9 @@ class WifiStab {
 
         void init();
 
-        static const NetworkSettings* settings;
+        static NetworkSettings settings;
     public:
-        WifiStab(const NetworkSettings* stt);
+        WifiStab(const NetworkSettings& stt);
         void handle();
     
 };

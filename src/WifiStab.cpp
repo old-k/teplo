@@ -9,14 +9,17 @@
 #include "Logger.hpp"
 
 
-const NetworkSettings* WifiStab::settings;
+NetworkSettings WifiStab::settings;
+WiFiClient espClient;
+PubSubClient mqtt(espClient);
 
-WifiStab::WifiStab(const NetworkSettings* stt) {
+WifiStab::WifiStab(const NetworkSettings& stt) {
     WifiStab::settings = stt;
+    
 }
 
 void WifiStab::handle() {
-    if (needReconnect && !WiFi.isConnected()){
+    if (needReconnect && !espClient.connected()){
         tryToConnectToRouter();
     }
 }
@@ -25,7 +28,7 @@ void WifiStab::handle() {
 void WifiStab::tryToConnectToRouter() {
 
     char testName[64] = { 0 };
-    strncpy(testName, settings->hostName, sizeof(testName));
+    strncpy(testName, settings.hostName, sizeof(testName));
 
     LOGGER.info("Bring up the WiFi module ");
 
@@ -38,7 +41,7 @@ void WifiStab::tryToConnectToRouter() {
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
     WiFi.setHostname(testName);
 
-    WiFi.begin(settings->ssid, settings->password);
+    WiFi.begin(settings.ssid, settings.password);
 
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
     WiFi.setHostname(testName);
@@ -80,21 +83,21 @@ void WifiStab::init() {
     LOGGER.info("init WiFi");
     delay(800);
 
-    IPAddress ipAddress = IPAddress(settings->ipAddress[0],
-                                    settings->ipAddress[1],
-                                    settings->ipAddress[2],
-                                    settings->ipAddress[3]);
+    IPAddress ipAddress = IPAddress(settings.ipAddress[0],
+                                    settings.ipAddress[1],
+                                    settings.ipAddress[2],
+                                    settings.ipAddress[3]);
 
     WiFi.onEvent(onWiFiEvent);
 
-    LOGGER.info("WiFi  \r\nSID: " + String(settings->ssid) + "\r\n"
-            " password: " + String(settings->password) + "\r\n"
-                        " hostName: " + String(settings->hostName) + "\r\n"
+    LOGGER.info("WiFi  \r\nSID: " + String(settings.ssid) + "\r\n"
+            " password: " + String(settings.password) + "\r\n"
+                        " hostName: " + String(settings.hostName) + "\r\n"
                         " local Ip: " + ipAddress.toString() + "\r\n"
                         " Current state: " + String(WiFi.getMode()) + "\r\n"
-                        " wifi mode: " + String(settings->wifiMode) + "\r\n");
+                        " wifi mode: " + String(settings.wifiMode) + "\r\n");
 
-    if (settings->wifiMode != WIFI_OFF) {
+    if (settings.wifiMode != WIFI_OFF) {
 
         LOGGER.info("Configuring WiFi...");
 
@@ -106,14 +109,14 @@ void WifiStab::init() {
         if (mDnsError){
             LOGGER.debug("mDns start error " + String(mDnsError));
         } else {
-            mdns_hostname_set(settings->hostName);
-            mdns_instance_name_set(settings->hostName);
+            mdns_hostname_set(settings.hostName);
+            mdns_instance_name_set(settings.hostName);
             LOGGER.debug("mDns started ");
         }
 
         LOGGER.info("WiFi and services works fine");
 
-    } else if (settings->wifiMode == WIFI_OFF && WiFi.getMode() != WIFI_OFF) {
+    } else if (settings.wifiMode == WIFI_OFF && WiFi.getMode() != WIFI_OFF) {
 
         LOGGER.info("   Turning WiFi off...");
         WiFi.mode(WIFI_OFF);

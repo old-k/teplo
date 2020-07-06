@@ -2,6 +2,9 @@
 #include <DallasTemperature.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include "Logger.hpp"
+#include "WifiStab.hpp"
+#include "Settings.hpp"
 
 /* Wifi */
 const char *ssid = "q2feidsDL";
@@ -29,8 +32,9 @@ DallasTemperature sensors(&oneWire);
 const int PIN = 25;
 
 /* create an instance of PubSubClient client */
-WiFiClient espClient;
-PubSubClient client(espClient);
+//WiFiClient espClient;
+WifiStab wifi(SettingsManager::get().network);
+PubSubClient* client = wifi.getMQTT();
 
 
 void receivedCallback(char *topic, byte *payload, unsigned int length)
@@ -116,6 +120,7 @@ char msg[64];
 void setup()
 {
   Serial.begin(9600);
+  LOGGER.info(">>>>>>>>>>Logger test");
   Serial.println("Dallas Temperature IC Control Library Demo");
   // Start up the library
   sensors.begin();
@@ -170,10 +175,10 @@ void loop()
     {
       lastMsg = now;
       if (xQueueReceive(tempQ, &tempBuf, 1) == pdTRUE) {
-        Serial.print(" Requesting temperatures...");
-        Serial.println("DONE");
+        LOGGER.info(" Requesting temperatures...");
+        LOGGER.warning("DONE");
         /********************************************************************/
-        Serial.print("Temperature is: ");
+        LOGGER.error("Temperature is: ");
         snprintf (msg, sizeof(msg), "{ \"t\": %lf }", tempBuf);
         client.publish(TEMP_TOPIC, msg);
 

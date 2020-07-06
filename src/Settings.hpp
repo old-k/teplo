@@ -1,6 +1,9 @@
 #pragma once
-
+#include <esp_wifi_types.h>
 #include <inttypes.h>
+
+#define INIT_MARKER         {'T', 'e', 'p', 'l'}
+#define VER                 1
 
 struct MQTTSettings {
     char server[64];
@@ -11,19 +14,11 @@ struct MQTTSettings {
 };
 
 struct NetworkSettings {
-    /**
-    * Настройки WiFi
-    */
     char ssid[64];
     char password[64];
     unsigned char ipAddress[4];
-
     char hostName[64];
-
-    unsigned char wifiMode;
-
-    char reserved[128];
-
+    wifi_mode_t wifiMode;
 };
 
 struct TempSensors {
@@ -35,8 +30,16 @@ struct TempSensors {
 };
 
 struct GeneralSettings {
-    char initMarker[4];         // ConF
-    unsigned char version;      // 1
-    NetworkSettings network;
-    MQTTSettings mqtt;    
+        char initMarker[4];         // ConF
+        unsigned char version;      // 1
+        NetworkSettings network;
+        MQTTSettings mqtt;
+        TempSensors temp;
+        char reserved[128];
+};
+
+class SettingsManager {
+    public:
+        static const GeneralSettings& get();    
+
 };
