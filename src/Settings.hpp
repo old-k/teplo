@@ -30,7 +30,7 @@ struct TempSensors {
 };
 
 struct GeneralSettings {
-        char initMarker[4];         // ConF
+        char initMarker[4];         // Tepl
         unsigned char version;      // 1
         NetworkSettings network;
         MQTTSettings mqtt;
@@ -39,7 +39,13 @@ struct GeneralSettings {
 };
 
 class SettingsManager {
+    private:
+        static SettingsManager settings;
+        SettingsManager();
+        GeneralSettings settings;
     public:
+        
+        static const SettingsManager& instance();
         static const GeneralSettings& get();    
-
+        
 };
