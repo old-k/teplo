@@ -40,9 +40,10 @@ struct GeneralSettings {
 
 class SettingsManager {
     private:
-        static SettingsManager settings;
+        static SettingsManager settingsMan;
         SettingsManager();
         GeneralSettings settings;
+        int init();
     public:
         
         static const SettingsManager& instance();

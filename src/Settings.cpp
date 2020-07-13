@@ -16,27 +16,23 @@ const char *CONFIG_NAME = "/config.txt";
 #define DEF_MQTT_CLIENT_ID  "ESP32-TEPLO"
 #define DEF_MQTT_QUEUE      DEF_MQTT_CLIENT_ID
 
-SettingsManager SettingsManager::settingsManager;
+static SettingsManager SettingsManager::settingsMan = SettingsManager();
 
+SettingsManager::SettingsManager() {
 
-GeneralSettings defaultSettings = {
-    .initMarker = INIT_MARKER,
-    .version = VER,
-    .network = {
-        DEF_WIFI_SSID, DEF_WIFI_PWD, DEF_WIFI_IP, DEF_HOSTNAME, WIFI_MODE_STA
-    },
-    .mqtt = {
-        DEF_MQTT_SERVER, DEF_MQTT_USER, DEF_MQTT_PWD, DEF_MQTT_CLIENT_ID, DEF_MQTT_QUEUE
-    },
-    .temp = { 0 },
-    .reserved = { 0 }
-};
+}
+
+ const SettingsManager& SettingsManager::instance() {
+   return settingsMan;
+ }
+
 
 const GeneralSettings& SettingsManager::get() {
     return defaultSettings;
 };
 
-void loadConfiguration(const char *filename, Config &config) {
+/*
+int loadConfiguration(const char *filename, GeneralSettings &config) {
   // Open file for reading
   File file = SD.open(filename);
 
@@ -61,7 +57,7 @@ void loadConfiguration(const char *filename, Config &config) {
 }
 
 // Saves the configuration to a file
-void saveConfiguration(const char *filename, const Config &config) {
+void saveConfiguration(const char *filename, const GeneralSettings &config) {
   // Delete existing file, otherwise the configuration is appended to the file
   SD.remove(filename);
 
@@ -89,5 +85,5 @@ void saveConfiguration(const char *filename, const Config &config) {
   // Close the file
   file.close();
 }
-
+*/
 
