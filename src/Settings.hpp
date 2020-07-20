@@ -2,9 +2,6 @@
 #include <esp_wifi_types.h>
 #include <inttypes.h>
 
-#define INIT_MARKER         {'T', 'e', 'p', 'l'}
-#define VER                 1
-
 struct MQTTSettings {
     char server[64];
     char user[32];
@@ -40,13 +37,17 @@ struct GeneralSettings {
 
 class SettingsManager {
     private:
+		const static char MARKER[];
+		const static int VERSION;
         static SettingsManager settingsMan;
         SettingsManager();
         GeneralSettings settings;
         int init();
     public:
-        
+
         static const SettingsManager& instance();
-        static const GeneralSettings& get();    
-        
+        static const GeneralSettings& get();
+        static bool is_valid(const GeneralSettings& stt);
+
 };
+

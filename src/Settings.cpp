@@ -16,10 +16,25 @@ const char *CONFIG_NAME = "/config.txt";
 #define DEF_MQTT_CLIENT_ID  "ESP32-TEPLO"
 #define DEF_MQTT_QUEUE      DEF_MQTT_CLIENT_ID
 
-static SettingsManager SettingsManager::settingsMan = SettingsManager();
+#include "Settings.hpp"
+#include <string.h>
 
-SettingsManager::SettingsManager() {
+const char SettingsManager::MARKER[] = { 'T', 'e', 'p', 'l' };
+const int SettingsManager::VERSION = 1;
 
+SettingsManager SettingsManager::settingsMan = SettingsManager();
+
+SettingsManager::SettingsManager()
+	: settings{
+		.initMarker = {0},
+		.version 	= 0,
+		.network 	= {0},
+		.mqtt 		= {0},
+		.temp 		= {0},
+		.reserved 	= {0}
+} {
+	memcpy(settings.initMarker, MARKER, sizeof(settings.initMarker));
+	settings.version = VERSION;
 }
 
  const SettingsManager& SettingsManager::instance() {
@@ -28,7 +43,13 @@ SettingsManager::SettingsManager() {
 
 
 const GeneralSettings& SettingsManager::get() {
-    return defaultSettings;
+    return instance().settings;
+};
+
+bool SettingsManager::is_valid(const GeneralSettings& stt) {
+	bool rv = memcmp(stt.initMarker, MARKER, sizeof(MARKER));
+	rv &= stt.version == VERSION;
+	return rv;
 };
 
 /*
